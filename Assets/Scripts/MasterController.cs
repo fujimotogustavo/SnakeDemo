@@ -6,10 +6,16 @@ using UnityEngine.SceneManagement;
 
 public class MasterController : MonoBehaviour
 {
-    public TMP_Text textElement;
-    static int rows = 16;
-    static int cols = 9;
-    bool isGameOver = false;
+    [SerializeField] private TMP_Text textElement;
+    [SerializeField] private TMP_Text scoreTMP;
+
+    private readonly static int rows = 16;
+    private readonly static int cols = 9;
+
+    private bool isGameOver = false;
+    private int collectedFruits = 0;
+
+    // TODO: variable to record ongoing position
 
     SquareType[,] gridArr = new SquareType[rows, cols];
     List<Vector2Int> snake = new List<Vector2Int>();
@@ -27,7 +33,8 @@ public class MasterController : MonoBehaviour
         {
             HandleInput();
         }
-        else {
+        else
+        {
             HandleGameOver();
         }
     }
@@ -74,6 +81,8 @@ public class MasterController : MonoBehaviour
 
         if (gridArr[targetPos.x, targetPos.y] == SquareType.Fruit)
         {
+            collectedFruits += 1;
+            scoreTMP.text = $"{collectedFruits}";
             SpawnRandomFruit();
         }
         else
