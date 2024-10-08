@@ -1,45 +1,53 @@
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class MasterController : MonoBehaviour
 {
-    [SerializeField] private TMP_Text textElement;
-    [SerializeField] private TMP_Text scoreTMP;
-
-    private readonly static int rows = 16;
-    private readonly static int cols = 9;
-    private readonly static int initialSnakeSize = 3;
-    private readonly static float maxFruitsPossible = (rows * cols) - initialSnakeSize;
-    private readonly static float maxSpeed = 0.1f;
-    private readonly static float initialSpeed = 1f;
+    [SerializeField] private SnakeController snakeController;
+    [SerializeField] private InputController inputController;
+    [SerializeField] private GridController gridController;
+    [SerializeField] private UIController uiController;
 
     private bool isGameOver = false;
-    private float collectedFruits = 0;
-
-    private OngoingDirection ongoingDirection = OngoingDirection.Right;
-
-    private SquareType[,] gridArr = new SquareType[rows, cols];
-    private readonly List<Vector2Int> snake = new();
-
-    private float autoMoveTime = initialSpeed;
     private float timer = 0.0f;
+    private float autoMoveTime;
 
     private void Awake()
     {
-        InitSnake();
-        SpawnRandomFruit();
-        DisplayGridInString();
+        inputController.DirectionalPressed += OnDirectionalPressedEvent;
+        snakeController.FruitEaten += OnFruitEatenEvent;
+        snakeController.TriggerGameOver += OnTriggerGameOver;
+        snakeController.InitSnake();
+        uiController.DisplayGridInString();
+        gridController.SpawnRandomFruit();
+        CalculateAutoMove();
+    }
+
+    private void OnTriggerGameOver()
+    {
+        isGameOver = true;
+        uiController.ChangeTextElementString("Game Over!\nPress ENTER.");
+        return;
+    }
+
+    private void OnFruitEatenEvent()
+    {
+        CalculateAutoMove();
+        gridController.SpawnRandomFruit();
+        gridController.collectedFruits++;
+        uiController.ChangeScoreText($"{gridController.collectedFruits}");
+    }
+
+    private void OnDirectionalPressedEvent()
+    {
+        ResetTimer();
     }
 
     private void Update()
     {
         if (!isGameOver)
         {
-            HandleInput();
+            inputController.HandleInput();
             HandleAutoMove();
         }
         else
@@ -48,13 +56,18 @@ public class MasterController : MonoBehaviour
         }
     }
 
+    public void ResetTimer()
+    {
+        timer = 0.0f;
+    }
+
     private void HandleAutoMove()
     {
         timer += Time.deltaTime;
         if (timer > autoMoveTime)
         {
             timer = 0;
-            AutoMove();
+            snakeController.AutoMove();
         }
     }
 
@@ -66,189 +79,9 @@ public class MasterController : MonoBehaviour
         }
     }
 
-    private void AutoMove()
+    private void CalculateAutoMove()
     {
-        switch (ongoingDirection)
-        {
-            case OngoingDirection.Up:
-                TryMove(0, -1);
-                break;
-            case OngoingDirection.Down:
-                TryMove(0, 1);
-                break;
-            case OngoingDirection.Left:
-                TryMove(-1, 0);
-                break;
-            case OngoingDirection.Right:
-                TryMove(1, 0);
-                break;
-        }
+        autoMoveTime = (gridController.collectedFruits / gridController.maxFruitsPossible * -1)
+            + snakeController.initialSpeed + snakeController.maxSpeed;
     }
-
-    private void UpdateSnakeSpeed()
-    {
-        autoMoveTime = (collectedFruits / maxFruitsPossible * -1) + initialSpeed + maxSpeed;
-    }
-
-    private void HandleInput()
-    {
-        if (Input.GetKeyDown(KeyCode.W) && ongoingDirection != OngoingDirection.Down)
-        {
-            ongoingDirection = OngoingDirection.Up;
-            TryMove(0, -1);
-            timer = 0;
-        }
-        else if (Input.GetKeyDown(KeyCode.S) && ongoingDirection != OngoingDirection.Up)
-        {
-            ongoingDirection = OngoingDirection.Down;
-            TryMove(0, 1);
-            timer = 0;
-        }
-        else if (Input.GetKeyDown(KeyCode.A) && ongoingDirection != OngoingDirection.Right)
-        {
-            ongoingDirection = OngoingDirection.Left;
-            TryMove(-1, 0);
-            timer = 0;
-        }
-        else if (Input.GetKeyDown(KeyCode.D) && ongoingDirection != OngoingDirection.Left)
-        {
-            ongoingDirection = OngoingDirection.Right;
-            TryMove(1, 0);
-            timer = 0;
-        }
-    }
-
-    private void TryMove(int x, int y)
-    {
-        Vector2Int snakeHead = snake[snake.Count - 1];
-        Vector2Int targetPos = new Vector2Int(snakeHead.x + x, snakeHead.y + y);
-
-        if (IsGameOver(targetPos))
-        {
-            isGameOver = true;
-            textElement.text = "Game Over!\nPress ENTER.";
-            return;
-        }
-
-        if (gridArr[targetPos.x, targetPos.y] == SquareType.Fruit)
-        {
-            collectedFruits += 1;
-            scoreTMP.text = $"{collectedFruits}";
-            SpawnRandomFruit();
-            UpdateSnakeSpeed();
-        }
-        else
-        {
-            RemoveSnakeTail();
-        }
-        AddSnakeToPos(targetPos.x, targetPos.y);
-
-        DisplayGridInString();
-    }
-
-    private bool IsGameOver(Vector2Int pos)
-    {
-        if (pos.x < 0 || pos.y < 0)
-        {
-            return true;
-        }
-        if (pos.x >= rows || pos.y >= cols)
-        {
-            return true;
-        }
-        if (gridArr[pos.x, pos.y] == SquareType.Snake)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private void InitSnake()
-    {
-        int halfX = rows / 2;
-        int halfY = cols / 2;
-
-        for (int x = -(initialSnakeSize); x < 0; x++)
-        {
-            AddSnakeToPos(halfX + x, halfY);
-        }
-    }
-
-    private void AddSnakeToPos(int x, int y)
-    {
-        gridArr[x, y] = SquareType.Snake;
-        Vector2Int vector2Int = new Vector2Int(x, y);
-        if (!snake.Contains(vector2Int))
-        {
-            snake.Add(vector2Int);
-        }
-    }
-
-    private void RemoveSnakeTail()
-    {
-        Vector2Int tailSquare = snake[0];
-        gridArr[tailSquare.x, tailSquare.y] = SquareType.Empty;
-        snake.RemoveAt(0);
-    }
-
-    private void SpawnRandomFruit()
-    {
-        while (true)
-        {
-            int randomX = Random.Range(0, rows);
-            int randomY = Random.Range(0, cols);
-
-            if (gridArr[randomX, randomY] == SquareType.Empty)
-            {
-                gridArr[randomX, randomY] = SquareType.Fruit;
-                return;
-            }
-        }
-    }
-
-    private void DisplayGridInString()
-    {
-        string fullGridString = "";
-
-        for (int y = 0; y < cols; y++)
-        {
-            for (int x = 0; x < rows; x++)
-            {
-                switch (gridArr[x, y])
-                {
-                    case SquareType.Empty:
-                        fullGridString += "e ";
-                        break;
-
-                    case SquareType.Snake:
-                        fullGridString += "S ";
-                        break;
-
-                    case SquareType.Fruit:
-                        fullGridString += "F ";
-                        break;
-                }
-            }
-            fullGridString += "\n";
-        }
-
-
-        textElement.text = fullGridString;
-    }
-}
-
-public enum SquareType
-{
-    Empty,
-    Snake,
-    Fruit
-}
-
-public enum OngoingDirection
-{
-    Up,
-    Down,
-    Left,
-    Right
 }
