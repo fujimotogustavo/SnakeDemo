@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MasterController : MonoBehaviour
 {
@@ -25,6 +26,17 @@ public class MasterController : MonoBehaviour
         if (!isGameOver)
         {
             HandleInput();
+        }
+        else {
+            HandleGameOver();
+        }
+    }
+
+    void HandleGameOver()
+    {
+        if (Input.GetKeyUp(KeyCode.KeypadEnter) || Input.GetKeyUp(KeyCode.Return))
+        {
+            SceneManager.LoadScene("MainScreen");
         }
     }
 
@@ -56,7 +68,7 @@ public class MasterController : MonoBehaviour
         if (IsGameOver(targetPos))
         {
             isGameOver = true;
-            textElement.text = "Game Over!";
+            textElement.text = "Game Over!\nPress ENTER.";
             return;
         }
 
