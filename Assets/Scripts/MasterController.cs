@@ -12,16 +12,20 @@ public class MasterController : MonoBehaviour
 
     private readonly static int rows = 16;
     private readonly static int cols = 9;
+    private readonly static int initialSnakeSize = 3;
+    private readonly static float maxFruitsPossible = (rows * cols) - initialSnakeSize;
+    private readonly static float maxSpeed = 0.1f;
+    private readonly static float initialSpeed = 1f;
 
     private bool isGameOver = false;
-    private int collectedFruits = 0;
+    private float collectedFruits = 0;
 
     private OngoingDirection ongoingDirection = OngoingDirection.Right;
 
     private SquareType[,] gridArr = new SquareType[rows, cols];
     private readonly List<Vector2Int> snake = new();
 
-    private float autoMoveTime = 1.0f; // TODO: scale according to collectedFruits
+    private float autoMoveTime = initialSpeed;
     private float timer = 0.0f;
 
     private void Awake()
@@ -49,8 +53,7 @@ public class MasterController : MonoBehaviour
         timer += Time.deltaTime;
         if (timer > autoMoveTime)
         {
-            autoMoveTime = timer;
-            timer = timer - autoMoveTime;
+            timer = 0;
             AutoMove();
         }
     }
@@ -80,6 +83,11 @@ public class MasterController : MonoBehaviour
                 TryMove(1, 0);
                 break;
         }
+    }
+
+    private void UpdateSnakeSpeed()
+    {
+        autoMoveTime = (collectedFruits / maxFruitsPossible * -1) + initialSpeed + maxSpeed;
     }
 
     private void HandleInput()
@@ -127,6 +135,7 @@ public class MasterController : MonoBehaviour
             collectedFruits += 1;
             scoreTMP.text = $"{collectedFruits}";
             SpawnRandomFruit();
+            UpdateSnakeSpeed();
         }
         else
         {
@@ -160,7 +169,7 @@ public class MasterController : MonoBehaviour
         int halfX = rows / 2;
         int halfY = cols / 2;
 
-        for (int x = -3; x < 0; x++)
+        for (int x = -(initialSnakeSize); x < 0; x++)
         {
             AddSnakeToPos(halfX + x, halfY);
         }
@@ -189,6 +198,7 @@ public class MasterController : MonoBehaviour
         {
             int randomX = Random.Range(0, rows);
             int randomY = Random.Range(0, cols);
+
             if (gridArr[randomX, randomY] == SquareType.Empty)
             {
                 gridArr[randomX, randomY] = SquareType.Fruit;
