@@ -26,9 +26,9 @@ public class SnakeController : MonoBehaviour
         switch (ongoingDirection)
         {
             case OngoingDirection.Up:
-                return new Vector2Int(0, -1);
-            case OngoingDirection.Down:
                 return new Vector2Int(0, 1);
+            case OngoingDirection.Down:
+                return new Vector2Int(0, -1);
             case OngoingDirection.Left:
                 return new Vector2Int(-1, 0);
             case OngoingDirection.Right:
@@ -51,11 +51,13 @@ public class SnakeController : MonoBehaviour
         if (gridController.gridArr[targetPos.x, targetPos.y] == SquareType.Fruit)
             FruitEaten?.Invoke();
         else
+        {
             RemoveSnakeTail();
+            gridController.DestroySnakeTailObject();
+        }
 
         AddSnakeToPos(targetPos.x, targetPos.y);
-
-        uiController.DisplayGridInString();
+        gridController.InstantiateSingleSnakeObject(targetPos.x, targetPos.y);        
     }
     private bool IsGameOver(Vector2Int pos)
     {

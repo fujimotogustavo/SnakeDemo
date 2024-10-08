@@ -8,6 +8,7 @@ public class MasterController : MonoBehaviour
     [SerializeField] private InputController inputController;
     [SerializeField] private GridController gridController;
     [SerializeField] private UIController uiController;
+    [SerializeField] private CameraController cameraController;
 
     private bool isGameOver = false;
     private float timer = 0.0f;
@@ -18,11 +19,13 @@ public class MasterController : MonoBehaviour
         inputController.DirectionalPressed += OnDirectionalPressedEvent;
         snakeController.FruitEaten += OnFruitEatenEvent;
         snakeController.TriggerGameOver += OnTriggerGameOver;
-        snakeController.InitSnake();        
+        snakeController.InitSnake();
         gridController.InitEmptySquareList();
         gridController.SpawnRandomFruit();
-        uiController.DisplayGridInString();
+        gridController.InstantiateSnakeObjects();
+        gridController.InstantiateWalls();
         CalculateAutoMove();
+        cameraController.AdjustOrthographicCameraForGrid();
     }
 
     private void OnTriggerGameOver()
@@ -34,7 +37,7 @@ public class MasterController : MonoBehaviour
 
     private void OnFruitEatenEvent()
     {
-        CalculateAutoMove();        
+        CalculateAutoMove();
         gridController.collectedFruits++;
         uiController.ChangeScoreText($"{gridController.collectedFruits}");
         gridController.SpawnRandomFruit();

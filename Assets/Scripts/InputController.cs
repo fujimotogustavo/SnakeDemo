@@ -8,7 +8,9 @@ public class InputController : MonoBehaviour
 
     public bool isHoldingKey;
     private float holdTime;
-    private float holdThreshold = 0.2f;
+    private float holdThreshold = 0.5f;
+    private float holdMinThreshold = 0.1f;
+    private float accelerationFactor = 0.15f;
     private KeyCode currentKey;
 
     private void Update()
@@ -20,6 +22,12 @@ public class InputController : MonoBehaviour
             {
                 snakeController.AutoMove();
                 holdTime = 0f;
+
+                if (holdThreshold > holdMinThreshold)
+                {
+                    holdThreshold -= accelerationFactor;
+                    holdThreshold = Mathf.Max(holdThreshold, holdMinThreshold);
+                }
             }
         }
     }
@@ -51,7 +59,6 @@ public class InputController : MonoBehaviour
 
     private void SetDirection(KeyCode key, OngoingDirection direction)
     {
-        ResetKeyHold();
         snakeController.ongoingDirection = direction;
         currentKey = key;
         MoveSnakeInputPressed();
@@ -68,6 +75,7 @@ public class InputController : MonoBehaviour
     {
         isHoldingKey = true;
         holdTime = 0f;
+        holdThreshold = 0.5f;
     }
 
     private void ResetKeyHold()
@@ -75,5 +83,6 @@ public class InputController : MonoBehaviour
         isHoldingKey = false;
         holdTime = 0f;
         currentKey = KeyCode.None;
+        holdThreshold = 0.5f;
     }
 }
