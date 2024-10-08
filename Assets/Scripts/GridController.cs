@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GridController : MonoBehaviour
@@ -9,7 +10,8 @@ public class GridController : MonoBehaviour
     public float collectedFruits = 0;
     public SquareType[,] gridArr = new SquareType[rows, cols];
     public float maxFruitsPossible;
-    
+    public readonly List<Vector2Int> emptySquares = new();
+
     private void Awake()
     {
         maxFruitsPossible = (rows * cols) - snakeController.initialSnakeSize;
@@ -17,16 +19,16 @@ public class GridController : MonoBehaviour
 
     public void SpawnRandomFruit()
     {
-        while (true)
-        {
-            int randomX = UnityEngine.Random.Range(0, rows);
-            int randomY = UnityEngine.Random.Range(0, cols);
+        int randomInRange = Random.Range(0, emptySquares.Count);
+        snakeController.ChangeSquareType(emptySquares[randomInRange], SquareType.Fruit);
+    }
 
-            if (gridArr[randomX, randomY] == SquareType.Empty)
-            {
-                gridArr[randomX, randomY] = SquareType.Fruit;
-                return;
-            }
-        }
+    public void InitEmptySquareList()
+    {
+        for (int y = 0; y < cols; y++)
+            for (int x = 0; x < rows; x++)
+                if (gridArr[x, y] == SquareType.Empty)
+                    emptySquares.Add(new Vector2Int(x, y));
+
     }
 }

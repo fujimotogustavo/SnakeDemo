@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -17,9 +18,10 @@ public class MasterController : MonoBehaviour
         inputController.DirectionalPressed += OnDirectionalPressedEvent;
         snakeController.FruitEaten += OnFruitEatenEvent;
         snakeController.TriggerGameOver += OnTriggerGameOver;
-        snakeController.InitSnake();
-        uiController.DisplayGridInString();
+        snakeController.InitSnake();        
+        gridController.InitEmptySquareList();
         gridController.SpawnRandomFruit();
+        uiController.DisplayGridInString();
         CalculateAutoMove();
     }
 
@@ -32,10 +34,10 @@ public class MasterController : MonoBehaviour
 
     private void OnFruitEatenEvent()
     {
-        CalculateAutoMove();
-        gridController.SpawnRandomFruit();
+        CalculateAutoMove();        
         gridController.collectedFruits++;
         uiController.ChangeScoreText($"{gridController.collectedFruits}");
+        gridController.SpawnRandomFruit();
     }
 
     private void OnDirectionalPressedEvent()
@@ -48,12 +50,11 @@ public class MasterController : MonoBehaviour
         if (!isGameOver)
         {
             inputController.HandleInput();
-            HandleAutoMove();
+            if (!inputController.isHoldingKey)
+                HandleAutoMove();
         }
         else
-        {
             HandleGameOver();
-        }
     }
 
     public void ResetTimer()

@@ -18,7 +18,7 @@ public class UIController : MonoBehaviour
                 switch (gridController.gridArr[x, y])
                 {
                     case SquareType.Empty:
-                        fullGridString += "e ";
+                        fullGridString += "- ";
                         break;
 
                     case SquareType.Snake:

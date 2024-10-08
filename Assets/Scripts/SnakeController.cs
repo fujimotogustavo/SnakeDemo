@@ -14,7 +14,7 @@ public class SnakeController : MonoBehaviour
     public readonly float maxSpeed = 0.1f;
     public readonly float initialSpeed = 1f;
     public OngoingDirection ongoingDirection = OngoingDirection.Right;
-    private readonly List<Vector2Int> snake = new();
+    public readonly List<Vector2Int> snakeRef = new();
 
     public void AutoMove()
     {
@@ -39,7 +39,7 @@ public class SnakeController : MonoBehaviour
     }
     private void TryMove(Vector2Int receivedVector)
     {
-        Vector2Int snakeHead = snake[snake.Count - 1];
+        Vector2Int snakeHead = snakeRef[snakeRef.Count - 1];
         Vector2Int targetPos = new(snakeHead.x + receivedVector.x, snakeHead.y + receivedVector.y);
 
         if (IsGameOver(targetPos))
@@ -87,18 +87,47 @@ public class SnakeController : MonoBehaviour
 
     private void AddSnakeToPos(int x, int y)
     {
-        gridController.gridArr[x, y] = SquareType.Snake;
-        Vector2Int vector2Int = new Vector2Int(x, y);
-        if (!snake.Contains(vector2Int))
-        {
-            snake.Add(vector2Int);
-        }
+        ChangeSquareType(new Vector2Int(x, y), SquareType.Snake);
     }
 
     private void RemoveSnakeTail()
     {
-        Vector2Int tailSquare = snake[0];
-        gridController.gridArr[tailSquare.x, tailSquare.y] = SquareType.Empty;
-        snake.RemoveAt(0);
+        ChangeSquareType(snakeRef[0], SquareType.Empty);
+    }
+
+    public void ChangeSquareType(Vector2Int squareVector, SquareType newType)
+    {
+        switch (newType)
+        {
+            case SquareType.Empty:
+                gridController.gridArr[squareVector.x, squareVector.y] = SquareType.Empty;
+
+                if (!gridController.emptySquares.Contains(squareVector))
+                    gridController.emptySquares.Add(squareVector);
+
+                if (snakeRef.Contains(squareVector))
+                    snakeRef.Remove(squareVector);
+                break;
+
+            case SquareType.Snake:
+                gridController.gridArr[squareVector.x, squareVector.y] = SquareType.Snake;
+
+                if (!snakeRef.Contains(squareVector))
+                    snakeRef.Add(squareVector);
+
+                if (gridController.emptySquares.Contains(squareVector))
+                    gridController.emptySquares.Remove(squareVector);
+                break;
+
+            case SquareType.Fruit:
+                gridController.gridArr[squareVector.x, squareVector.y] = SquareType.Fruit;
+
+                if (gridController.emptySquares.Contains(squareVector))
+                    gridController.emptySquares.Remove(squareVector);
+
+                if (snakeRef.Contains(squareVector))
+                    snakeRef.Remove(squareVector);
+                break;
+        }
     }
 }
