@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MasterController : MonoBehaviour
 {
@@ -15,10 +16,13 @@ public class MasterController : MonoBehaviour
     private bool isGameOver = false;
     private int collectedFruits = 0;
 
-    // TODO: variable to record ongoing position
+    private OngoingDirection ongoingDirection = OngoingDirection.Right;
 
-    SquareType[,] gridArr = new SquareType[rows, cols];
-    List<Vector2Int> snake = new List<Vector2Int>();
+    private SquareType[,] gridArr = new SquareType[rows, cols];
+    private readonly List<Vector2Int> snake = new();
+
+    private float autoMoveTime = 1.0f; // TODO: scale according to collectedFruits
+    private float timer = 0.0f;
 
     private void Awake()
     {
@@ -32,6 +36,7 @@ public class MasterController : MonoBehaviour
         if (!isGameOver)
         {
             HandleInput();
+            HandleAutoMove();
         }
         else
         {
@@ -39,7 +44,18 @@ public class MasterController : MonoBehaviour
         }
     }
 
-    void HandleGameOver()
+    private void HandleAutoMove()
+    {
+        timer += Time.deltaTime;
+        if (timer > autoMoveTime)
+        {
+            autoMoveTime = timer;
+            timer = timer - autoMoveTime;
+            AutoMove();
+        }
+    }
+
+    private void HandleGameOver()
     {
         if (Input.GetKeyUp(KeyCode.KeypadEnter) || Input.GetKeyUp(KeyCode.Return))
         {
@@ -47,27 +63,54 @@ public class MasterController : MonoBehaviour
         }
     }
 
-    void HandleInput()
+    private void AutoMove()
     {
-        if (Input.GetKeyDown(KeyCode.W))
+        switch (ongoingDirection)
         {
-            TryMove(0, -1);
-        }
-        else if (Input.GetKeyDown(KeyCode.S))
-        {
-            TryMove(0, 1);
-        }
-        else if (Input.GetKeyDown(KeyCode.A))
-        {
-            TryMove(-1, 0);
-        }
-        else if (Input.GetKeyDown(KeyCode.D))
-        {
-            TryMove(1, 0);
+            case OngoingDirection.Up:
+                TryMove(0, -1);
+                break;
+            case OngoingDirection.Down:
+                TryMove(0, 1);
+                break;
+            case OngoingDirection.Left:
+                TryMove(-1, 0);
+                break;
+            case OngoingDirection.Right:
+                TryMove(1, 0);
+                break;
         }
     }
 
-    void TryMove(int x, int y)
+    private void HandleInput()
+    {
+        if (Input.GetKeyDown(KeyCode.W) && ongoingDirection != OngoingDirection.Down)
+        {
+            ongoingDirection = OngoingDirection.Up;
+            TryMove(0, -1);
+            timer = 0;
+        }
+        else if (Input.GetKeyDown(KeyCode.S) && ongoingDirection != OngoingDirection.Up)
+        {
+            ongoingDirection = OngoingDirection.Down;
+            TryMove(0, 1);
+            timer = 0;
+        }
+        else if (Input.GetKeyDown(KeyCode.A) && ongoingDirection != OngoingDirection.Right)
+        {
+            ongoingDirection = OngoingDirection.Left;
+            TryMove(-1, 0);
+            timer = 0;
+        }
+        else if (Input.GetKeyDown(KeyCode.D) && ongoingDirection != OngoingDirection.Left)
+        {
+            ongoingDirection = OngoingDirection.Right;
+            TryMove(1, 0);
+            timer = 0;
+        }
+    }
+
+    private void TryMove(int x, int y)
     {
         Vector2Int snakeHead = snake[snake.Count - 1];
         Vector2Int targetPos = new Vector2Int(snakeHead.x + x, snakeHead.y + y);
@@ -94,7 +137,7 @@ public class MasterController : MonoBehaviour
         DisplayGridInString();
     }
 
-    bool IsGameOver(Vector2Int pos)
+    private bool IsGameOver(Vector2Int pos)
     {
         if (pos.x < 0 || pos.y < 0)
         {
@@ -112,7 +155,7 @@ public class MasterController : MonoBehaviour
         return false;
     }
 
-    void InitSnake()
+    private void InitSnake()
     {
         int halfX = rows / 2;
         int halfY = cols / 2;
@@ -123,7 +166,7 @@ public class MasterController : MonoBehaviour
         }
     }
 
-    void AddSnakeToPos(int x, int y)
+    private void AddSnakeToPos(int x, int y)
     {
         gridArr[x, y] = SquareType.Snake;
         Vector2Int vector2Int = new Vector2Int(x, y);
@@ -133,14 +176,14 @@ public class MasterController : MonoBehaviour
         }
     }
 
-    void RemoveSnakeTail()
+    private void RemoveSnakeTail()
     {
         Vector2Int tailSquare = snake[0];
         gridArr[tailSquare.x, tailSquare.y] = SquareType.Empty;
         snake.RemoveAt(0);
     }
 
-    void SpawnRandomFruit()
+    private void SpawnRandomFruit()
     {
         while (true)
         {
@@ -154,7 +197,7 @@ public class MasterController : MonoBehaviour
         }
     }
 
-    void DisplayGridInString()
+    private void DisplayGridInString()
     {
         string fullGridString = "";
 
@@ -190,4 +233,12 @@ public enum SquareType
     Empty,
     Snake,
     Fruit
+}
+
+public enum OngoingDirection
+{
+    Up,
+    Down,
+    Left,
+    Right
 }

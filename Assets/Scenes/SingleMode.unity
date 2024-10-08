@@ -481,7 +481,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textElement: {fileID: 1506069525}
-  scoreTMP: {fileID: 0}
+  scoreTMP: {fileID: 313230650}
 --- !u!4 &1253697535
 Transform:
   m_ObjectHideFlags: 0
