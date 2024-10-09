@@ -7,7 +7,8 @@ public class UIController : MonoBehaviour
     [SerializeField] private TMP_Text textElement;
     [SerializeField] private TMP_Text scoreTMP;
 
-    public void ChangeTextElementString(string receivedString) {
+    public void ChangeTextElementString(string receivedString)
+    {
         textElement.text = receivedString;
     }
     public void ChangeScoreText(string receivedString)
@@ -15,4 +16,8 @@ public class UIController : MonoBehaviour
         scoreTMP.text = receivedString;
     }
 
+    public void ActivateGameOverObj()
+    {
+        textElement.gameObject.SetActive(true);
+    }
 }

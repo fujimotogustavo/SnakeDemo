@@ -32,6 +32,7 @@ public class MasterController : MonoBehaviour
     {
         isGameOver = true;
         uiController.ChangeTextElementString("Game Over!\nPress ENTER.");
+        uiController.ActivateGameOverObj();
         return;
     }
 
